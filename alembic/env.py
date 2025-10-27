@@ -14,11 +14,13 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-# Add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+# Add your model's MetaData object here for 'autogenerate' support.
+# Import Base from the application to allow Alembic to autogenerate migrations.
+from app.db import Base  # type: ignore  # noqa
+
+# Set the target metadata for Alembic's autogeneration
+# to include all tables defined on the SQLAlchemy Base.
+target_metadata = Base.metadata
 
 
 def get_url() -> str:
