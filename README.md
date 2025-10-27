@@ -15,6 +15,10 @@ After cloning, change into the `falcom-track-api` directory to run the applicati
 ## Features
 
 * **Health check** — exposes a `GET /health` endpoint returning `{"status": "ok"}`.  The admin dashboard and mobile app use this endpoint to verify that the service is running.
+* - **Authentication & RBAC** – Employee ID + password login using bcrypt, with JWT access tokens (15 min) and refresh tokens (7 days). Roles (admin, manager, employee) enforce access control.
+- **Sites API** – CRUD endpoints for geofence sites (`/sites`) with role-based permissions. Only admins can create, update and delete; managers can read, and employees have no access.
+- **Automatic migrations** – Alembic automatically applies database migrations on startup.
+
 * **Dockerised** — the API is packaged in a Dockerfile.  At runtime the container automatically runs Alembic migrations and starts the server with Uvicorn.
 * **Database and cache ready** — the configuration assumes a PostgreSQL database and Redis cache are available on the same Docker network.  Alembic is configured but there are no migration scripts yet.
 * **Swagger docs** — FastAPI automatically exposes interactive documentation at `/docs` and `/redoc`.
@@ -28,7 +32,7 @@ After cloning, change into the `falcom-track-api` directory to run the applicati
    source .venv/bin/activate
    pip install -r requirements.txt
    ```
-2. Create a `.env` file or export the `DATABASE_URL` environment variable to point at your PostgreSQL database (for example `postgresql+asyncpg://falcom:falcom@localhost:5432/falcom_track`).
+2. Create a `.env` file by copying `.env.example` and update values as needed (e.g., `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRE_MIN`, `JWT_REFRESH_EXPIRE_DAYS`, `CORS_ORIGINS`, and `TZ=Asia/Riyadh`).`postgresql+asyncpg://falcom:falcom@localhost:5432/falcom_track`).
 3. Run any pending migrations:
    ```bash
    alembic upgrade head
@@ -37,7 +41,7 @@ After cloning, change into the `falcom-track-api` directory to run the applicati
    ```bash
    uvicorn app.main:app --reload
    ```
-5. Access the health check at [http://localhost:8000/health](http://localhost:8000/health).  The interactive API docs are available at [http://localhost:8000/docs](http://localhost:8000/docs).
+5. Access the API docs at [http://localhost:8000/docs](http://localhost:8000/docs) and test endpoints such as `POST /auth/login` and `GET /auth/me`. The health check remains available at [http://localhost:8000/health](http://localhost:8000/health).
 
 ## Running with Docker
 
