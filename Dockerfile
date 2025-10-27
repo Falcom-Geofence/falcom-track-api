@@ -19,4 +19,5 @@ COPY . .
 EXPOSE 8000
 
 # The default command runs database migrations and then starts the API.
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+#CMD ["sh","-c","alembic upgrade head || echo 'no migrations'; uvicorn app.main:app --host 0.0.0.0 --port 8000"]
