@@ -16,12 +16,12 @@ try:
     # Pydantic v2
     from pydantic import ConfigDict
 except ImportError:
-    ConfigDict = dict  # fallback (won't be used with v2)
+    ConfigDict = dict  # fallback if needed
 
 from .models import UserRole
 
 
-# ===== Auth =====
+# ========== AUTH ==========
 class LoginRequest(BaseModel):
     employee_id: str
     password: str
@@ -39,14 +39,14 @@ class TokenData(BaseModel):
     exp: Optional[int] = None
 
 
-# ===== User =====
+# ========== USERS ==========
 class UserBase(BaseModel):
     employee_id: str
     full_name: str
     email: Optional[EmailStr] = None
     role: UserRole
     is_active: bool = True
-    created_at: Optional[dt.datetime] = None  # read-only in practice
+    created_at: Optional[dt.datetime] = None  # read-only
 
 
 class UserCreate(BaseModel):
@@ -59,18 +59,17 @@ class UserCreate(BaseModel):
 
 class UserRead(UserBase):
     id: int
-    # Pydantic v2 config
     model_config = ConfigDict(from_attributes=True)
 
 
-# ===== Site =====
+# ========== SITES ==========
 class SiteBase(BaseModel):
-    name: str
+    name: str            # نُبقيها كما هي الآن (بدون AR/EN) عشان ما نكسر الجداول الحالية
     lat: float
     lng: float
     radius_m: float = 150.0
     is_active: bool = True
-    created_at: Optional[dt.datetime] = None  # read-only in practice
+    created_at: Optional[dt.datetime] = None  # read-only
 
 
 class SiteCreate(BaseModel):
@@ -90,5 +89,31 @@ class SiteUpdate(BaseModel):
 
 class SiteRead(SiteBase):
     id: int
-    # Pydantic v2 config
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ========== TRACKING ==========
+class TrackingPointBase(BaseModel):
+    employee_id: str
+    timestamp: dt.datetime
+    lat: float
+    lng: float
+    accuracy: Optional[float] = None
+    site_id: Optional[int] = None
+    site_name_ar: Optional[str] = None
+    site_name_en: Optional[str] = None
+    created_at: Optional[dt.datetime] = None  # read-only
+
+
+class TrackingPointCreate(BaseModel):
+    employee_id: str
+    # نخلي التايم ستامب اختياري؛ لو ما انبعت من العميل بنحطه الآن في الراوتر/الخدمة
+    timestamp: Optional[dt.datetime] = None
+    lat: float
+    lng: float
+    accuracy: Optional[float] = None
+
+
+class TrackingPointRead(TrackingPointBase):
+    id: int
     model_config = ConfigDict(from_attributes=True)
