@@ -12,8 +12,19 @@ import datetime as dt
 from typing import Optional
 
 from pydantic import BaseModel, Field, EmailStr
+try:
+    # Pydantic v2
+    from pydantic import ConfigDict
+except ImportError:
+    ConfigDict = dict  # fallback (won't be used with v2)
 
 from .models import UserRole
+
+
+# ===== Auth =====
+class LoginRequest(BaseModel):
+    employee_id: str
+    password: str
 
 
 class Token(BaseModel):
@@ -28,13 +39,14 @@ class TokenData(BaseModel):
     exp: Optional[int] = None
 
 
+# ===== User =====
 class UserBase(BaseModel):
     employee_id: str
     full_name: str
     email: Optional[EmailStr] = None
     role: UserRole
     is_active: bool = True
-    created_at: dt.datetime
+    created_at: Optional[dt.datetime] = None  # read-only in practice
 
 
 class UserCreate(BaseModel):
@@ -42,23 +54,23 @@ class UserCreate(BaseModel):
     full_name: str
     password: str
     email: Optional[EmailStr] = None
-    role: UserRole = UserRole.EMPLOYEE
+    role: UserRole = UserRole.employee  # enums are lowercase: admin/manager/employee
 
 
 class UserRead(UserBase):
     id: int
+    # Pydantic v2 config
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        orm_mode = True
 
-
+# ===== Site =====
 class SiteBase(BaseModel):
     name: str
     lat: float
     lng: float
     radius_m: float = 150.0
     is_active: bool = True
-    created_at: dt.datetime
+    created_at: Optional[dt.datetime] = None  # read-only in practice
 
 
 class SiteCreate(BaseModel):
@@ -78,6 +90,5 @@ class SiteUpdate(BaseModel):
 
 class SiteRead(SiteBase):
     id: int
-
-    class Config:
-        orm_mode = True
+    # Pydantic v2 config
+    model_config = ConfigDict(from_attributes=True)
