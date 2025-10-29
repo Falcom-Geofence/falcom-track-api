@@ -21,7 +21,10 @@ router = APIRouter(prefix="/sites", tags=["Sites"])
 
 
 @router.get("", response_model=list[SiteRead])
-def list_sites(db: Session = Depends(get_db), user=Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER))):
+def list_sites(
+    db: Session = Depends(get_db),
+    user=Depends(require_roles(UserRole.admin, UserRole.manager)),
+):
     """Return a list of all sites. Accessible to admins and managers."""
     return db.query(Site).all()
 
@@ -30,16 +33,21 @@ def list_sites(db: Session = Depends(get_db), user=Depends(require_roles(UserRol
 def create_site(
     site_in: SiteCreate,
     db: Session = Depends(get_db),
-    user=Depends(require_roles(UserRole.ADMIN)),
+    user=Depends(require_roles(UserRole.admin)),
 ) -> Site:
     """Create a new site. Only admins may create."""
     site = Site(
-        name=site_in.name,
-        lat=site_in.lat,
-        lng=site_in.lng,
-        radius_m=site_in.radius_m,
-        is_active=True,
+       name=site_in.name,
+       name_ar=site_in.name_ar,
+       name_en=site_in.name_en,
+       description_ar=site_in.description_ar,
+       description_en=site_in.description_en,
+       lat=site_in.lat,
+       lng=site_in.lng,
+       radius_m=site_in.radius_m,
+       is_active=True,
     )
+    
     db.add(site)
     db.commit()
     db.refresh(site)
@@ -50,7 +58,7 @@ def create_site(
 def read_site(
     site_id: int = Path(..., gt=0),
     db: Session = Depends(get_db),
-    user=Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
+    user=Depends(require_roles(UserRole.admin, UserRole.manager)),
 ) -> Site:
     """Return a site by ID. Accessible to admins and managers."""
     site = db.get(Site, site_id)
@@ -64,15 +72,17 @@ def update_site(
     site_id: int,
     site_in: SiteUpdate,
     db: Session = Depends(get_db),
-    user=Depends(require_roles(UserRole.ADMIN)),
+    user=Depends(require_roles(UserRole.admin)),
 ) -> Site:
     """Update an existing site. Only admins may update."""
     site = db.get(Site, site_id)
     if site is None:
         raise HTTPException(status_code=404, detail="Site not found")
+
     # Update fields if provided
     for field, value in site_in.model_dump(exclude_unset=True).items():
         setattr(site, field, value)
+
     db.commit()
     db.refresh(site)
     return site
@@ -82,7 +92,7 @@ def update_site(
 def delete_site(
     site_id: int,
     db: Session = Depends(get_db),
-    user=Depends(require_roles(UserRole.ADMIN)),
+    user=Depends(require_roles(UserRole.admin)),
 ) -> dict[str, str]:
     """Delete a site by ID. Only admins may delete."""
     site = db.get(Site, site_id)

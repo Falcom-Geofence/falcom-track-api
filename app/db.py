@@ -10,7 +10,6 @@ retrieving a scoped session in FastAPI routes.
 from __future__ import annotations
 
 import os
-from contextlib import contextmanager
 from typing import Generator
 
 from sqlalchemy import create_engine
@@ -23,17 +22,29 @@ DATABASE_URL = os.getenv(
 )
 
 # SQLAlchemy engine and session factory.
-engine = create_engine(DATABASE_URL, echo=False, future=True)
+engine = create_engine(
+    DATABASE_URL,
+    echo=False,
+    future=True,
+    pool_pre_ping=True,           # يتأكد من صحة الاتصال قبل كل طلب
+)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    future=True,
+)
 
 # Declarative base class for models.
 Base = declarative_base()
 
 
-@contextmanager
 def get_db() -> Generator[Session, None, None]:
-    """Yield a new database session for a request and ensure it is closed."""
+    """
+    FastAPI dependency that yields a SQLAlchemy Session and ensures it's closed.
+    (مهم: لا تستخدم @contextmanager هنا)
+    """
     db = SessionLocal()
     try:
         yield db
